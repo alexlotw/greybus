@@ -1272,5 +1272,86 @@ struct gb_lights_get_flash_fault_response {
 #define GB_LIGHTS_FLASH_FAULT_LED_OVER_TEMPERATURE	0x00000080
 } __packed;
 
+/* Greybus Camera modes */
+/* Version of the Greybus camera protocol we support */
+#define GB_CAMERA_VERSION_MAJOR     0x00
+#define GB_CAMERA_VERSION_MINOR     0x01
+
+/* Greybus Camera request types */
+#define GB_CAMERA_TYPE_CAPABILITIES             0x02
+#define GB_CAMERA_TYPE_CONFIGURE_STREAMS        0x03
+#define GB_CAMERA_TYPE_CAPTURE                  0x04
+#define GB_CAMERA_TYPE_FLUSH                    0x05
+#define GB_CAMERA_TYPE_METADATA                 0x06
+
+/* Capabilities flags */
+#define GB_CAP_METADATA_GREYBUS     0x00000000
+#define GB_CAP_METADATA_MIPI        0x00000001
+#define GB_CAP_STILL_IMAGE          0x00000002
+#define GB_CAP_JPEG                 0x00000008
+
+/* Stream configuration for Request */
+struct gb_stream_config_req {
+    __le16    width;
+    __le16    height;
+    __le16    format;
+    __le16    padding;
+} __packed;
+
+/* Stream configuration for Response */
+struct gb_stream_config_resp {
+    __le16    width;
+    __le16    height;
+    __le16    format;
+    __u8      virtual_channel;
+    __u8      data_type;
+    __le32    max_size;
+} __packed;
+
+/* Camera Protocol Capabilities Response */
+struct gb_camera_capabilities_response {
+    __le16  size;
+    __u8   capabilities[0];
+} __packed;
+
+
+/* Camera Protocol Configure Streams Request */
+struct gb_camera_configure_streams_request {
+    __le16  num_streams;
+    __le16  padding;
+    struct gb_stream_config_req config[0];
+} __packed;
+
+/* Camera Protocol Configure Streams Response */
+struct gb_camera_configure_streams_response {
+    __le16  num_streams;
+    __u8    flags;
+    __le16  padding;
+    struct gb_stream_config_resp config[0];
+} __packed;
+
+/* Camera Protocol Capture Request */
+struct gb_camera_capture_request {
+    __le32  request_id;
+    __u8    streams;
+    __u8    padding;
+    __le16  num_frames;
+    __u8    settings[0];
+} __packed;
+
+/* Camera Protocol Flush Response */
+struct gb_camera_flush_response {
+    __le32  request_id;
+} __packed;
+
+/* Camera Protocol Meta Data Request */
+struct gb_camera_metadata_request {
+    __le32  request_id;
+    __le16  frame_number;
+    __u8    stream;
+    __u8    padding;
+    __u8    data[0];
+} __packed;
+
 #endif /* __GREYBUS_PROTOCOLS_H */
 

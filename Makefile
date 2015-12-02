@@ -18,7 +18,8 @@ gb-phy-y :=	gpbridge.o	\
 		gpio.o	\
 		i2c.o	\
 		spi.o	\
-		usb.o
+		usb.o	\
+		camera.o
 
 # Prefix all modules with gb-
 gb-vibrator-y := vibrator.o

@@ -56,9 +56,21 @@ MODULE_DEVICE_TABLE(usb, id_table);
 /* vendor request to reset a cport state */
 #define REQUEST_RESET_CPORT	0x05
 
+/* vendor csi tx control request */
+#define REQUEST_CSI_START   0x10
+#define REQUEST_CSI_STOP    0x11
+
 /* vendor request to time the latency of messages on a given cport */
 #define REQUEST_LATENCY_TAG_EN	0x06
 #define REQUEST_LATENCY_TAG_DIS	0x07
+/**
+ * csi control for camera stream start
+ */
+struct csi_control {
+    __u8 data_type;
+    __u8 lane_num;
+    u32 word_count;
+};
 
 /*
  * @endpoint: bulk in endpoint for CPort data
@@ -664,6 +676,57 @@ static void cport_out_callback(struct urb *urb)
 	free_urb(es2, urb);
 }
 
+static ssize_t csi_tx_read(struct file *f, char __user *buf,
+				size_t count, loff_t *ppos)
+{
+	ssize_t ret;
+    
+	return ret;
+}
+
+static ssize_t csi_tx_write(struct file *f, const char __user *buf,
+				size_t count, loff_t *ppos)
+{
+    struct usb_device *udev = (struct usb_device *)f->f_inode->i_private;
+    struct csi_control csi;
+    ssize_t ret;
+    int retval;
+    
+    if (buf[0] == 'a') {
+        printk("csi tx on \n");
+        csi.data_type = 6;
+        csi.lane_num = 4;
+        csi.word_count = 1024;
+        retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+                     REQUEST_CSI_START,
+                     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+                     &csi, sizeof(csi),
+                     NULL, 0,
+                     ES2_TIMEOUT);
+        if (retval < 0) {
+            dev_err(&udev->dev, "Cannot set csi tx \n", retval);
+            //goto out;
+        }
+    } else if (buf[0] == 'b') {
+        printk("csi tx off \n");
+    }
+
+	return count;
+}
+
+static struct dentry *csi_tx_dentry;
+
+static const struct file_operations csi_tx_fops = {
+	.read	= csi_tx_read,
+    .write	= csi_tx_write,
+};
+
+static void csi_tx_enable(struct usb_device *udev)
+{
+	csi_tx_dentry = debugfs_create_file("csi", (S_IWUSR | S_IRUGO),
+						gb_debugfs_get(), udev,
+						&csi_tx_fops);
+}
 #define APB1_LOG_MSG_SIZE	64
 static void apb_log_get(struct es2_ap_dev *es2, char *buf)
 {
@@ -951,6 +1014,9 @@ static int ap_probe(struct usb_interface *interface,
 		if (retval)
 			goto err_disable_cport_in;
 	}
+	
+	/* enable debugfs for csi tx */
+    csi_tx_enable(udev);
 
 	return 0;
 

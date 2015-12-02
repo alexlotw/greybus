@@ -50,6 +50,10 @@ static int __init gpbridge_init(void)
 		goto error_spi;
 	}
 
+	if (gb_camera_protocol_init()) {
+		pr_err("error initializing audio protocols\n");
+		goto error_spi;
+	}
 	return 0;
 
 error_spi:
