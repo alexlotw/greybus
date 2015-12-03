@@ -67,9 +67,11 @@ MODULE_DEVICE_TABLE(usb, id_table);
  * csi control for camera stream start
  */
 struct csi_control {
-    __u8 data_type;
+    __u8 csi_id;
+    __u8 clock_mode;
     __u8 lane_num;
-    u32 word_count;
+    __u8 padding;
+    u32 bus_freq;
 };
 
 /*
@@ -694,9 +696,10 @@ static ssize_t csi_tx_write(struct file *f, const char __user *buf,
     
     if (buf[0] == 'a') {
         printk("csi tx on \n");
-        csi.data_type = 6;
+        csi.csi_id = 1;
+        csi.clock_mode = 1;
         csi.lane_num = 4;
-        csi.word_count = 1024;
+        csi.bus_freq = 100000000;
         retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
                      REQUEST_CSI_START,
                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
