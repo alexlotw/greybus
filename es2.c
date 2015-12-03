@@ -705,10 +705,18 @@ static ssize_t csi_tx_write(struct file *f, const char __user *buf,
                      ES2_TIMEOUT);
         if (retval < 0) {
             dev_err(&udev->dev, "Cannot set csi tx \n", retval);
-            //goto out;
         }
     } else if (buf[0] == 'b') {
         printk("csi tx off \n");
+        retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+                     REQUEST_CSI_STOP,
+                     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+                     &csi, sizeof(csi),
+                     NULL, 0,
+                     ES2_TIMEOUT);
+        if (retval < 0) {
+            dev_err(&udev->dev, "Cannot set csi tx \n", retval);
+        }
     }
 
 	return count;
