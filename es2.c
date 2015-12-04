@@ -676,6 +676,7 @@ static void cport_out_callback(struct urb *urb)
 	free_urb(es2, urb);
 }
 
+#if 0
 static ssize_t csi_tx_read(struct file *f, char __user *buf,
 				size_t count, loff_t *ppos)
 {
@@ -683,13 +684,13 @@ static ssize_t csi_tx_read(struct file *f, char __user *buf,
     
 	return ret;
 }
+#endif
 
 static ssize_t csi_tx_write(struct file *f, const char __user *buf,
 				size_t count, loff_t *ppos)
 {
     struct usb_device *udev = (struct usb_device *)f->f_inode->i_private;
     struct csi_control csi;
-    ssize_t ret;
     int retval;
     
     if (buf[0] == 'a') {
@@ -700,22 +701,24 @@ static ssize_t csi_tx_write(struct file *f, const char __user *buf,
         retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
                      REQUEST_CSI_START,
                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+                     0, 0,
                      &csi, sizeof(csi),
-                     NULL, 0,
                      ES2_TIMEOUT);
         if (retval < 0) {
-            dev_err(&udev->dev, "Cannot set csi tx \n", retval);
+            printk("Cannot set csi tx \n");
+            //dev_err(&udev->dev, "Cannot set csi tx \n", retval);
         }
     } else if (buf[0] == 'b') {
         printk("csi tx off \n");
         retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
                      REQUEST_CSI_STOP,
                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-                     &csi, sizeof(csi),
+                     0, 0,
                      NULL, 0,
                      ES2_TIMEOUT);
         if (retval < 0) {
-            dev_err(&udev->dev, "Cannot set csi tx \n", retval);
+            printk("Cannot set csi tx \n");
+            //dev_err(&udev->dev, "Cannot set csi tx \n", retval);
         }
     }
 
@@ -725,8 +728,10 @@ static ssize_t csi_tx_write(struct file *f, const char __user *buf,
 static struct dentry *csi_tx_dentry;
 
 static const struct file_operations csi_tx_fops = {
-	.read	= csi_tx_read,
-    .write	= csi_tx_write,
+#if 0
+    .read   = csi_tx_read,
+#endif
+    .write  = csi_tx_write,
 };
 
 static void csi_tx_enable(struct usb_device *udev)
@@ -1022,7 +1027,7 @@ static int ap_probe(struct usb_interface *interface,
 		if (retval)
 			goto err_disable_cport_in;
 	}
-	
+    printk("bsq test csi-2");
 	/* enable debugfs for csi tx */
     csi_tx_enable(udev);
 
