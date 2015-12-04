@@ -692,25 +692,30 @@ static ssize_t csi_tx_write(struct file *f, const char __user *buf,
 				size_t count, loff_t *ppos)
 {
     struct usb_device *udev = (struct usb_device *)f->f_inode->i_private;
-    struct csi_control csi;
+    struct csi_control *csi;
+    ssize_t ret;
     int retval;
     
     if (buf[0] == 'a') {
+        csi = kmalloc(sizeof(*csi), GFP_KERNEL);
+        
         printk("csi tx on \n");
-        csi.csi_id = 1;
-        csi.clock_mode = 1;
-        csi.lane_num = 4;
-        csi.bus_freq = 100000000;
+        csi->csi_id = 1;
+        csi->clock_mode = 1;
+        csi->lane_num = 4;
+        csi->bus_freq = 0xFF00FF00;
         retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
                      REQUEST_CSI_START,
                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
                      0, 0,
-                     &csi, sizeof(csi),
+                     //csi,  sizeof(*csi),
+                     NULL, 0,
                      ES2_TIMEOUT);
         if (retval < 0) {
             printk("Cannot set csi tx \n");
             //dev_err(&udev->dev, "Cannot set csi tx \n", retval);
         }
+        kfree(csi);
     } else if (buf[0] == 'b') {
         printk("csi tx off \n");
         retval = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
