@@ -364,8 +364,7 @@ static void camera_enable(void)
  */
 static int gb_camera_connection_init(struct gb_connection *connection)
 {
-	struct gb_camera *gb;
-	int ret;
+    struct gb_camera *gb;
 
 	gb = kzalloc(sizeof(*gb), GFP_KERNEL);
 	if (!gb)
